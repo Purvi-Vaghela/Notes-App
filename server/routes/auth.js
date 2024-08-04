@@ -29,7 +29,7 @@ passport.use(
           done(null, user);
         }
       } catch (error) {
-        console.log(error);
+        console.log(error);   
       }
     }
   )
@@ -68,18 +68,11 @@ router.get('/logout', (req, res) => {
 });
 
 
-// Presist user data after successful authentication
+// Persist user data after successful authentication
 passport.serializeUser(function (user, done) {
   done(null, user.id);
 });
 
-// Retrieve user data from session.
-// Original Code
-// passport.deserializeUser(function (id, done) {
-//   User.findById(id, function (err, user) {
-//     done(err, user);
-//   });
-// });
 
 // New
 passport.deserializeUser(async (id, done) => {

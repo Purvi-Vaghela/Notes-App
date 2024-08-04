@@ -1,7 +1,8 @@
 exports.isLoggedIn = function (req, res, next) {
-  if(req.user) {
-    next();
-  } else {
-    return res.status(401).send('Access Denied');
-  }
-}
+    if (req.user) {
+      next();
+    } else {
+      res.render('access-denied'); // Renders the access-denied.ejs view
+    }
+  };
+  

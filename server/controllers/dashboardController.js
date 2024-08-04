@@ -1,10 +1,6 @@
 const Note = require("../models/Notes");
 const mongoose = require("mongoose");
 
-/**
- * GET /
- * Dashboard
- */
 exports.dashboard = async (req, res) => {
 
   let perPage = 12;
@@ -12,13 +8,21 @@ exports.dashboard = async (req, res) => {
 
   const locals = {
     title: "Dashboard",
-    description: "Free NodeJS Notes App.",
+    description: "Notes App.",
   };
 
+  /// This query is used to fetch a paginated list of notes for a specific user,
+  //  sorting them by their updatedAt field in descending order, and projecting specific fields.
   try {
-    // Mongoose "^7.0.0 Update
+   
+    //-->> limits the number of documents returned to perPage, ensuring only the specified number of documents 
+    // are included in the result.
+
     const notes = await Note.aggregate([
       { $sort: { updatedAt: -1 } },
+      // This stage sorts the documents based on the updatedAt field in descending order (-1).
+      //  This ensures the most recently updated notes   appear first.
+
       { $match: { user: mongoose.Types.ObjectId(req.user.id) } },
       {
         $project: {
@@ -27,8 +31,8 @@ exports.dashboard = async (req, res) => {
         },
       }
       ])
-    .skip(perPage * page - perPage)
-    .limit(perPage)
+    .skip(perPage * page - perPage)    //skips a certain number of documents to achieve pagination
+    .limit(perPage) //    limits the number of documents returned to perPage, ensuring only the specified number of documents are included in the result.
     .exec(); 
 
     const count = await Note.count();
@@ -42,32 +46,7 @@ exports.dashboard = async (req, res) => {
       pages: Math.ceil(count / perPage)
     });
  
-    // Original Code
-    // Note.aggregate([
-    //   { $sort: { updatedAt: -1 } },
-    //   { $match: { user: mongoose.Types.ObjectId(req.user.id) } },
-    //   {
-    //     $project: {
-    //       title: { $substr: ["$title", 0, 30] },
-    //       body: { $substr: ["$body", 0, 100] },
-    //     },
-    //   },
-    // ])
-    //   .skip(perPage * page - perPage)
-    //   .limit(perPage)
-    //   .exec(function (err, notes) {
-    //     Note.count().exec(function (err, count) {
-    //       if (err) return next(err);
-    //       res.render("dashboard/index", {
-    //         userName: req.user.firstName,
-    //         locals,
-    //         notes,
-    //         layout: "../views/layouts/dashboard",
-    //         current: page,
-    //         pages: Math.ceil(count / perPage),
-    //       });
-    //     });
-    //   });
+   
 
   } catch (error) {
     console.log(error);
@@ -78,12 +57,15 @@ exports.dashboard = async (req, res) => {
  * GET /
  * View Specific Note
  */
+
+// to fetch a specific note from the database that belongs to the authenticated user and render it using a specific view template. 
 exports.dashboardViewNote = async (req, res) => {
   const note = await Note.findById({ _id: req.params.id })
     .where({ user: req.user.id })
-    .lean();
-
-  if (note) {
+    .lean(); 
+    // lean - This method returns a plain JavaScript object instead of a Mongoose document, which makes the operation more efficient
+ 
+    if (note) {
     res.render("dashboard/view-note", {
       noteID: req.params.id,
       note,
